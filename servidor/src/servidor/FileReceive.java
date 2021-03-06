@@ -1,52 +1,55 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package cliente;
+package servidor;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketTimeoutException;
 
-/**
- *
- * @author Alfon
- */
-public class Cliente {
-    
+public class FileReceive {
+
     public static void main(String[] args) {
-        int port = 9999;
-        String host = "127.0.0.1"; // local host
-        Cliente fs = new Cliente();
-        fs.ready(port, host);
-    } 
-    
-    private void receiveFile(FileOutputStream outToFile, DatagramSocket socket) throws IOException {
+        // Change this to the desired directory route (Where the file will be stored)
+        System.out.println("Ready to receive!");
+        int port = 1234; // Change this to the desired port
+        String serverRoute = "C:\\Users\\Alfon\\Desktop\\";
+        createFile(port, serverRoute);   // Creating the file  
+    }
+
+    public static void createFile(int port, String serverRoute) {
+        try {
+            DatagramSocket socket = new DatagramSocket(port);
+            byte[] receiveFileName = new byte[1024]; // Where we store the data of datagram of the name
+            DatagramPacket receiveFileNamePacket = new DatagramPacket(receiveFileName, receiveFileName.length);
+            socket.receive(receiveFileNamePacket); // Receive the datagram with the name of the file
+            System.out.println("Receiving file name");
+            byte[] data = receiveFileNamePacket.getData(); // Reading the name in bytes
+            String fileName = new String(data, 0, receiveFileNamePacket.getLength()); // Converting the name to string
+            System.out.println("Creating file");
+            File f = new File(serverRoute + "\\" + fileName); // Creating the file
+            FileOutputStream outToFile = new FileOutputStream(f); // Creating the stream through which we write the file content
+
+            receiveFile(outToFile, socket); // Receiving the file
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    private static void receiveFile(FileOutputStream outToFile, DatagramSocket socket) throws IOException {
         System.out.println("Receiving file");
         boolean flag; // Have we reached end of file
         int sequenceNumber = 0; // Order of sequences
         int foundLast = 0; // The las sequence found
         byte[] message = new byte[1024]; // Where the data from the received datagram is stored
         byte[] fileByteArray = new byte[1021];
-        DatagramSocket data = new DatagramSocket();
         DatagramPacket receivedPacket = new DatagramPacket(message, message.length);
         while (true) {
-            
-            System.out.println("..");
             // Where we store the data to be writen to the file
 
             // Receive packet and retrieve the data
             socket.receive(receivedPacket);
-            
-            System.out.println("...");
-            
             message = receivedPacket.getData(); // Data to be written to the file
 
             // Get port and address for sending acknowledgment
@@ -74,7 +77,7 @@ public class Cliente {
             } else {
                 System.out.println("Expected sequence number: " + (foundLast + 1) + " but received " + sequenceNumber + ". DISCARDING");
                 // Re send the acknowledgement
-                sendAck(foundLast + 1, socket, address, port);
+                sendAck(foundLast+1, socket, address, port);
             }
             // Check for last datagram
             if (flag) {
@@ -83,7 +86,7 @@ public class Cliente {
             }
         }
     }
-    
+
     private static void sendAck(int foundLast, DatagramSocket socket, InetAddress address, int port) throws IOException {
         // send acknowledgement
         byte[] ackPacket = new byte[2];
@@ -93,44 +96,5 @@ public class Cliente {
         DatagramPacket acknowledgement = new DatagramPacket(ackPacket, ackPacket.length, address, port);
         socket.send(acknowledgement);
         System.out.println("Sent ack: Sequence Number = " + foundLast);
-    }
-    
-    private void ready(int port, String host) {
-        
-        System.out.println("Choosing file to send");
-        try {
-            DatagramSocket socket = new DatagramSocket();
-            InetAddress address = InetAddress.getByName(host);
-            String fileName;
-            
-            File f = new File("prueba.txt");
-            fileName = f.getName();
-            byte[] fileNameBytes = fileName.getBytes(); // File name as bytes to send it
-            DatagramPacket fileStatPacket = new DatagramPacket(fileNameBytes, fileNameBytes.length, address, port); // File name packet
-            socket.send(fileStatPacket); // Sending the packet with the file name
-             this.receiveFile(new FileOutputStream(f), socket);
-            //socket.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
-        }
-    }
-    
-    
-    
-    private byte[] readFileToByteArray(File file) {
-        FileInputStream fis = null;
-        // Creating a byte array using the length of the file
-        // file.length returns long which is cast to int
-        byte[] bArray = new byte[(int) file.length()];
-        try {
-            fis = new FileInputStream(file);
-            fis.read(bArray);
-            fis.close();
-            
-        } catch (IOException ioExp) {
-            ioExp.printStackTrace();
-        }
-        return bArray;
     }
 }
