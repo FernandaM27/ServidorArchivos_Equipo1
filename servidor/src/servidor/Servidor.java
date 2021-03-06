@@ -11,23 +11,30 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
- * @author Alfon
+ * @author Dany/Fer/Jc/Alfonsin
  */
 public class Servidor {
-    private static byte[] message = new byte[1024]; 
+    //private static byte[] message = new byte[1024]; 
 
-    public static void main(String[] args) throws SocketException, IOException {
-        ExecutorService service = Executors.newFixedThreadPool(3);
-        DatagramSocket socket = new DatagramSocket(9999);
-        DatagramPacket packet = new DatagramPacket(message, message.length);
+    public static void main(String[] args) throws SocketException, IOException, InterruptedException {
+        ExecutorService service = Executors.newFixedThreadPool(2);
+       // DatagramSocket socket = new DatagramSocket(9999);
+      //DatagramPacket packet = new DatagramPacket(message, message.length);
               
-                socket.receive(packet);
-                service.execute(new SendFile(packet,socket));
-                System.out.println("1212121212121");
-            
-          
+//                socket.receive(packet);
+//                service.execute(new SendFile(packet,socket));
+
+        for (int i = 0; i < 2; i++) {
+            service.execute(new SendFile());
+            //Una vez que recibe, se tiene que esperar un ratito 
+            //para volver a enviar
+            Thread.sleep(30000);
+        }
+        
+        
     }
 }

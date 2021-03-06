@@ -17,40 +17,48 @@ import java.net.SocketTimeoutException;
 
 /**
  *
- * @author Alfon
+ * @author Alfonsin/Danielin/Jeisin/Fernandin
  */
 public class SendFile implements Runnable {
-    private DatagramSocket socket;
+    //  private DatagramSocket socket;
+
     private String serverRoute;
-    private DatagramPacket datos;
-    
-    public SendFile(DatagramPacket datos, DatagramSocket socket) {
-        this.datos = datos;
-        this.socket=socket;
-        
+    // private DatagramPacket packet;
+
+//       public SendFile(DatagramPacket datos, DatagramSocket socket) {
+//            this.packet = datos;
+//            this.socket=socket;
+//
+//            serverRoute = "C:\\Users\\fermi\\Downloads\\UDP\\random\\ServidorArchivosUDP\\servidor";
+//        }
+    public SendFile() {
+
         serverRoute = "C:\\Users\\fermi\\Downloads\\UDP\\random\\ServidorArchivosUDP\\servidor";
     }
 
     @Override
     public void run() {
-         this.createFile();
-        
+        this.createFile();
     }
 
     public void createFile() {
+        System.out.println("Entre!");
         try {
-            
+            byte[] message = new byte[1024];
+            DatagramSocket socket = new DatagramSocket(9999);
+            DatagramPacket packet = new DatagramPacket(message, message.length);
+            socket.receive(packet);
             System.out.println("Receiving file name");
-            byte[] data = datos.getData(); // Reading the name in bytes
-            String fileName = new String(data, 0, datos.getLength()); // Converting the name to string
+            byte[] data = packet.getData(); // Reading the name in bytes
+            String fileName = new String(data, 0, packet.getLength()); // Converting the name to string
             System.out.println("Creating file");
 //            File f = new File(serverRoute + "\\" + fileName); // Creating the file
             // Creating the stream through which we write the file content
 
 //            receiveFile(outToFile, socket); // Receiving the file
-            byte[] bytes= this.readFileToByteArray(this.buscarArchivo(fileName));
-                
-            this.sendFile(socket, bytes, datos.getAddress(), datos.getPort());
+            byte[] bytes = this.readFileToByteArray(this.buscarArchivo(fileName));
+
+            this.sendFile(socket, bytes, packet.getAddress(), packet.getPort());
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(1);
@@ -65,27 +73,23 @@ public class SendFile implements Runnable {
         return f;
     }
 
-
-    
     private void sendFile(DatagramSocket socket, byte[] fileByteArray, InetAddress address, int port) throws IOException {
         System.out.println("Sending file");
         System.out.println(address.toString());
         int sequenceNumber = 0; // For order
         boolean flag; // To see if we got to the end of the file
         int ackSequence = 0; // To see if the datagram was received correctly
-        
+
         byte[] ack = new byte[2]; // Create another packet for datagram ackknowledgement
-        
-        
-        System.out.println("tamaño:"+fileByteArray.length);
-        
-        
+
+        System.out.println("tamaño:" + fileByteArray.length);
+
         for (int i = 0; i < fileByteArray.length; i = i + 1021) {
-            System.out.println(".");
+
             sequenceNumber += 1;
 
             byte[] message = new byte[1024]; // First two bytes of the data are for control (datagram integrity and order)
-            
+
             // Create message
             message[0] = (byte) (sequenceNumber >> 8);
             message[1] = (byte) (sequenceNumber);
@@ -105,7 +109,7 @@ public class SendFile implements Runnable {
             }
 
             DatagramPacket sendPacket = new DatagramPacket(message, message.length, address, port); // The data to be sent
-            
+
             socket.send(sendPacket); // Sending the data
             System.out.println("Sent: Sequence number = " + sequenceNumber);
 
@@ -114,7 +118,7 @@ public class SendFile implements Runnable {
             while (true) {
 
                 DatagramPacket ackpack = new DatagramPacket(ack, ack.length);
-                
+
                 try {
                     socket.setSoTimeout(50); // Waiting for the server to send the ack
                     socket.receive(ackpack);
@@ -136,7 +140,7 @@ public class SendFile implements Runnable {
                 }
             }
         }
-        System.out.println(".........");
+        socket.close();
     }
 
     private byte[] readFileToByteArray(File file) {
@@ -154,6 +158,5 @@ public class SendFile implements Runnable {
         }
         return bArray;
     }
-    
-    
+
 }

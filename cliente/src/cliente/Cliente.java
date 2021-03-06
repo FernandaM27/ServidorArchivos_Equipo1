@@ -39,14 +39,10 @@ public class Cliente {
         DatagramSocket data = new DatagramSocket();
         DatagramPacket receivedPacket = new DatagramPacket(message, message.length);
         while (true) {
-
-            System.out.println("..");
             // Where we store the data to be writen to the file
 
             // Receive packet and retrieve the data
             socket.receive(receivedPacket);
-
-            System.out.println("...");
 
             message = receivedPacket.getData(); // Data to be written to the file
 
