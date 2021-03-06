@@ -28,7 +28,7 @@ public class SendFile implements Runnable {
         this.datos = datos;
         this.socket=socket;
         
-        serverRoute = "C:\\Users\\fermi\\Downloads\\UDP\\random";
+        serverRoute = "C:\\Users\\fermi\\Downloads\\UDP\\random\\ServidorArchivosUDP\\servidor";
     }
 
     @Override
@@ -78,6 +78,8 @@ public class SendFile implements Runnable {
         
         
         System.out.println("tamaño:"+fileByteArray.length);
+        
+        
         for (int i = 0; i < fileByteArray.length; i = i + 1021) {
             System.out.println(".");
             sequenceNumber += 1;
@@ -134,6 +136,7 @@ public class SendFile implements Runnable {
                 }
             }
         }
+        System.out.println(".........");
     }
 
     private byte[] readFileToByteArray(File file) {

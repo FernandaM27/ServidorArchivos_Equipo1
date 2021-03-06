@@ -14,20 +14,21 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
+import java.util.Scanner;
 
 /**
  *
- * @author Alfon
+ * @author Fer/Dany/Alfo/jaisi
  */
 public class Cliente {
-    
+
     public static void main(String[] args) {
         int port = 9999;
         String host = "127.0.0.1"; // local host
         Cliente fs = new Cliente();
         fs.ready(port, host);
-    } 
-    
+    }
+
     private void receiveFile(FileOutputStream outToFile, DatagramSocket socket) throws IOException {
         System.out.println("Receiving file");
         boolean flag; // Have we reached end of file
@@ -38,15 +39,15 @@ public class Cliente {
         DatagramSocket data = new DatagramSocket();
         DatagramPacket receivedPacket = new DatagramPacket(message, message.length);
         while (true) {
-            
+
             System.out.println("..");
             // Where we store the data to be writen to the file
 
             // Receive packet and retrieve the data
             socket.receive(receivedPacket);
-            
+
             System.out.println("...");
-            
+
             message = receivedPacket.getData(); // Data to be written to the file
 
             // Get port and address for sending acknowledgment
@@ -83,7 +84,7 @@ public class Cliente {
             }
         }
     }
-    
+
     private static void sendAck(int foundLast, DatagramSocket socket, InetAddress address, int port) throws IOException {
         // send acknowledgement
         byte[] ackPacket = new byte[2];
@@ -94,30 +95,61 @@ public class Cliente {
         socket.send(acknowledgement);
         System.out.println("Sent ack: Sequence Number = " + foundLast);
     }
-    
+
     private void ready(int port, String host) {
-        
+
         System.out.println("Choosing file to send");
         try {
             DatagramSocket socket = new DatagramSocket();
             InetAddress address = InetAddress.getByName(host);
             String fileName;
-            
-            File f = new File("prueba.txt");
+
+            File f = new File(obtenerPeticion());
             fileName = f.getName();
             byte[] fileNameBytes = fileName.getBytes(); // File name as bytes to send it
             DatagramPacket fileStatPacket = new DatagramPacket(fileNameBytes, fileNameBytes.length, address, port); // File name packet
             socket.send(fileStatPacket); // Sending the packet with the file name
-             this.receiveFile(new FileOutputStream(f), socket);
+            this.receiveFile(new FileOutputStream(f), socket);
             //socket.close();
         } catch (Exception ex) {
             ex.printStackTrace();
             System.exit(1);
         }
     }
-    
-    
-    
+
+    private String obtenerPeticion() {
+        Scanner sc = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Archivos disponibles");
+
+            System.out.println("--------------------");
+
+            System.out.println("Libro PDF-> F ");
+
+            System.out.println("Archivo TXT-> T");
+
+            System.out.println("Imagen IMG-> I");
+
+            System.out.print("Seleccione una opción: ");
+
+            String peticion = sc.nextLine();
+
+            if (peticion.equalsIgnoreCase("F")) {
+                return "prueba.pdf";
+                
+            } else if (peticion.equalsIgnoreCase("T")) {
+                return "prueba.txt";
+                
+            } else if (peticion.equalsIgnoreCase("I")) {
+                return "prueba.png";
+                
+            } else {
+                System.out.println("Ingrese una opción válida");
+            }
+        }
+    }
+
     private byte[] readFileToByteArray(File file) {
         FileInputStream fis = null;
         // Creating a byte array using the length of the file
@@ -127,7 +159,7 @@ public class Cliente {
             fis = new FileInputStream(file);
             fis.read(bArray);
             fis.close();
-            
+
         } catch (IOException ioExp) {
             ioExp.printStackTrace();
         }

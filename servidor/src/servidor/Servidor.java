@@ -23,9 +23,11 @@ public class Servidor {
         ExecutorService service = Executors.newFixedThreadPool(3);
         DatagramSocket socket = new DatagramSocket(9999);
         DatagramPacket packet = new DatagramPacket(message, message.length);
-     
-            socket.receive(packet);
-             service.execute(new SendFile(packet,socket));
+              
+                socket.receive(packet);
+                service.execute(new SendFile(packet,socket));
+                System.out.println("1212121212121");
+            
           
     }
 }
